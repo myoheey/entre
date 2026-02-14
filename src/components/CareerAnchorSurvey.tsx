@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import {
   careerAnchorQuestions,
   careerAnchorCategories,
@@ -33,6 +33,9 @@ export default function CareerAnchorSurvey({
   const [saved, setSaved] = useState(false);
   const [existingResults, setExistingResults] = useState<Record<string, number> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [resultId, setResultId] = useState<string | null>(null);
+  const [aiReport, setAiReport] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
 
   const totalQuestions = careerAnchorQuestions.length;
   const totalPages = Math.ceil(totalQuestions / QUESTIONS_PER_PAGE);
@@ -47,6 +50,8 @@ export default function CareerAnchorSurvey({
           const data = await res.json();
           if (data.myResult) {
             setExistingResults(data.myResult.results);
+            setResultId(data.myResult.id);
+            setAiReport(data.myResult.aiReport || null);
             setShowResults(true);
           }
         }
@@ -112,7 +117,9 @@ export default function CareerAnchorSurvey({
         body: JSON.stringify({ groupId, results, topAnchor }),
       });
       if (res.ok) {
+        const data = await res.json();
         setSaved(true);
+        setResultId(data.result.id);
         onComplete?.(results);
       }
     } catch {
@@ -218,8 +225,93 @@ export default function CareerAnchorSurvey({
             </button>
           </div>
         )}
-        {existingResults && (
+        {existingResults && !aiReport && !generating && (
           <div className="text-center"><p className="text-sm text-slate-400">이미 검사를 완료했습니다.</p></div>
+        )}
+        {/* AI Report Section */}
+        {(saved || existingResults) && resultId && (
+          <div className="bg-white rounded-lg border border-slate-200 p-6 mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900">AI 커리어 분석 리포트</h3>
+                <p className="text-sm text-slate-500 mt-0.5">강점, 약점, 추천 직업을 AI가 분석합니다</p>
+              </div>
+              {!aiReport && !generating && (
+                <button
+                  onClick={async () => {
+                    setGenerating(true);
+                    try {
+                      const res = await fetch("/api/ai-analysis", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ resultId }),
+                      });
+                      if (res.ok) {
+                        const data = await res.json();
+                        setAiReport(data.report);
+                      } else {
+                        const data = await res.json();
+                        alert(data.error || "AI 분석 생성에 실패했습니다.");
+                      }
+                    } catch {
+                      alert("서버 연결에 실패했습니다.");
+                    } finally {
+                      setGenerating(false);
+                    }
+                  }}
+                  className="btn-primary text-sm"
+                >
+                  AI 분석 생성
+                </button>
+              )}
+            </div>
+            {generating && (
+              <div className="text-center py-12">
+                <svg className="animate-spin w-10 h-10 text-blue-600 mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <p className="text-slate-500">AI가 커리어 분석 리포트를 작성하고 있습니다...</p>
+                <p className="text-sm text-slate-400 mt-1">약 10-20초 소요됩니다</p>
+              </div>
+            )}
+            {aiReport && (
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
+                {aiReport.split("\n").map((line, i) => {
+                  if (line.startsWith("# ")) return <h2 key={i} className="text-xl font-bold text-slate-900 mb-4 mt-0">{line.slice(2)}</h2>;
+                  if (line.startsWith("## ")) return <h3 key={i} className="text-lg font-semibold text-slate-900 mt-6 mb-3">{line.slice(3)}</h3>;
+                  if (line.startsWith("### ")) return <h4 key={i} className="text-base font-semibold text-slate-800 mt-4 mb-2">{line.slice(4)}</h4>;
+                  if (line.startsWith("---")) return <hr key={i} className="my-4 border-slate-300" />;
+                  if (line.startsWith("- ") || line.startsWith("* ")) {
+                    return (
+                      <div key={i} className="flex gap-2 mb-1.5 ml-2">
+                        <span className="text-slate-400 shrink-0">&bull;</span>
+                        <p className="text-sm text-slate-700 leading-relaxed">{renderBold(line.slice(2))}</p>
+                      </div>
+                    );
+                  }
+                  if (line.match(/^\d+\.\s/)) {
+                    const content = line.replace(/^\d+\.\s/, "");
+                    return (
+                      <div key={i} className="flex gap-2 mb-1.5 ml-2">
+                        <span className="text-slate-500 shrink-0 text-sm font-medium">{line.match(/^\d+/)?.[0]}.</span>
+                        <p className="text-sm text-slate-700 leading-relaxed">{renderBold(content)}</p>
+                      </div>
+                    );
+                  }
+                  if (line.trim() === "") return <div key={i} className="h-2" />;
+                  return <p key={i} className="text-sm text-slate-700 leading-relaxed mb-2">{renderBold(line)}</p>;
+                })}
+              </div>
+            )}
+            {!aiReport && !generating && (
+              <div className="text-center py-10 border-2 border-dashed border-slate-200 rounded-lg">
+                <div className="text-3xl mb-3">&#x1F916;</div>
+                <h4 className="font-semibold text-slate-900 mb-1">AI 분석 리포트를 생성해보세요</h4>
+                <p className="text-sm text-slate-500">검사 결과를 기반으로 강점, 약점, 추천 직업을 분석합니다</p>
+              </div>
+            )}
+          </div>
         )}
       </div>
     );
@@ -291,4 +383,16 @@ function getAnchorDescription(key: string): string {
     LS: "일과 삶의 균형을 가장 중요하게 생각합니다. 가족과의 시간, 취미, 여가를 충분히 즐길 수 있는 유연한 근무 환경을 추구합니다.",
   };
   return descriptions[key] || "";
+}
+
+function renderBold(text: string): React.ReactNode {
+  const parts = text.split(/\*\*(.*?)\*\*/g);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <strong key={i} className="font-semibold text-slate-900">{part}</strong>
+    ) : (
+      <span key={i}>{part}</span>
+    )
+  );
 }

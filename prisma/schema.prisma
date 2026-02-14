@@ -55,6 +55,7 @@ model CareerAnchorResult {
   group     AssessmentGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   results   String   // JSON: { TF: 4.2, GM: 3.8, ... }
   topAnchor String   // e.g. "TF"
+  aiReport  String?  // AI-generated career analysis report
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

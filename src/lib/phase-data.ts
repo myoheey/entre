@@ -51,3 +51,25 @@ export const careerAnchorCategories = [
   { name: "순수 도전", key: "CH", color: "#f97316", questions: [6, 14, 22, 30, 38] },
   { name: "라이프스타일", key: "LS", color: "#06b6d4", questions: [7, 15, 23, 31, 39] },
 ];
+
+export const anchorDescriptions: Record<string, string> = {
+  TF: "특정 분야의 전문성을 깊이 있게 발전시키는 것에 가치를 둡니다. 자신의 전문 분야에서 최고가 되는 것을 목표로 하며, 기술적 역량의 성장이 핵심 동기입니다.",
+  GM: "조직을 이끌고 관리하는 역할에서 보람을 찾습니다. 높은 직위와 영향력을 추구하며, 팀의 성과를 만들어내는 리더십이 핵심 역량입니다.",
+  AU: "자유롭고 독립적인 업무 환경을 중시합니다. 규칙에 얽매이지 않고 자신만의 방식으로 일하는 것을 선호하며, 창의적이고 자율적인 환경에서 능력을 발휘합니다.",
+  SE: "안정적이고 예측 가능한 환경을 추구합니다. 고용 안정성과 재정적 보장을 중요하게 여기며, 장기적인 안정을 기반으로 경력을 쌓아갑니다.",
+  EC: "새로운 것을 창조하고 사업을 만들어내는 것에 열정이 있습니다. 혁신적인 아이디어를 실현시키고 무에서 유를 창조하는 기업가 정신이 핵심입니다.",
+  SV: "사회에 기여하고 다른 사람들을 돕는 것에 큰 보람을 느낍니다. 세상을 더 나은 곳으로 만들고자 하는 봉사 정신과 사회적 가치 실현이 핵심 동기입니다.",
+  CH: "끊임없이 새로운 도전을 추구합니다. 불가능해 보이는 일에 도전하고 경쟁에서 이기는 것에 동기부여를 받으며, 극한 상황에서 능력을 발휘합니다.",
+  LS: "일과 삶의 균형을 가장 중요하게 생각합니다. 가족과의 시간, 취미, 여가를 충분히 즐길 수 있는 유연한 근무 환경을 추구합니다.",
+};
+
+export const anchorFullNames: Record<string, string> = {
+  TF: "Technical/Functional Competence (전문/기술 역량)",
+  GM: "General Management (관리 역량)",
+  AU: "Autonomy/Independence (자율/독립)",
+  SE: "Security/Stability (안정/보장)",
+  EC: "Entrepreneurial Creativity (창업/창의)",
+  SV: "Service/Dedication (봉사/헌신)",
+  CH: "Pure Challenge (순수 도전)",
+  LS: "Lifestyle (라이프스타일)",
+};

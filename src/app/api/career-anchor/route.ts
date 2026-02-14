@@ -108,6 +108,7 @@ export async function GET(request: Request) {
       userName: r.user.name,
       results: JSON.parse(r.results),
       topAnchor: r.topAnchor,
+      aiReport: r.aiReport,
       createdAt: r.createdAt,
     }));
 
